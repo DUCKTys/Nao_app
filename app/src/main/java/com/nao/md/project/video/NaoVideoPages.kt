@@ -39,7 +39,7 @@ import java.util.HashMap
 import java.util.concurrent.ExecutorService
 
 /**
- * Shell halaman Video Nao MD berbasis Invidious.
+ * Shell halaman Video Nao MD berbasis NewPipeExtractor.
  *
  * Dibangun penuh dengan Android Views (tanpa WebView, tanpa Compose) sehingga
  * menyatu dengan MainActivity yang ada. Aliran:
@@ -51,7 +51,7 @@ import java.util.concurrent.ExecutorService
  */
 class NaoVideoPages(
     private val activity: Activity,
-    private val api: InvidiousApi,
+    private val api: NewPipeVideoApi,
     private val exec: ExecutorService,
     private val callbacks: Callbacks
 ) {
@@ -93,7 +93,7 @@ class NaoVideoPages(
     private var errorTv: TextView? = null
     private var playerSource: TextView? = null
     private var activeVideoId: String = ""
-    private val pendingStreams = ArrayList<InvidiousApi.Stream>()
+    private val pendingStreams = ArrayList<NewPipeVideoApi.Stream>()
     private var triedYoutubeFallback = false
     private var userSeeking = false
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -354,7 +354,7 @@ class NaoVideoPages(
             if (gen != generation || released) return@execute
             activity.runOnUiThread {
                 if (items.isEmpty()) setStatus(
-                    "Trending tidak tersedia. Periksa instance Invidious dan koneksi internet." +
+                    "Trending tidak tersedia. Periksa koneksi internet." +
                         (failure?.let { "\n($it)" } ?: "")
                 )
                 else renderList(items)
@@ -386,7 +386,7 @@ class NaoVideoPages(
         }
     }
 
-    private fun renderList(items: List<InvidiousApi.VideoItem>) {
+    private fun renderList(items: List<NewPipeVideoApi.VideoItem>) {
         val target = list ?: return
         target.removeAllViews()
         if (statusText != null) statusText = null
@@ -396,12 +396,12 @@ class NaoVideoPages(
                 setMargins(0, 0, 0, dp(6))
             })
         }
-        target.addView(tv("\u2022 Dibuat untuk kamu lewat Invidious", 10f).apply {
+        target.addView(tv("\u2022 Data dari YouTube via NewPipe", 10f).apply {
             setTextColor(muted); setPadding(dp(4), dp(12), dp(4), dp(4))
         })
     }
 
-    private fun videoCard(item: InvidiousApi.VideoItem): LinearLayout {
+    private fun videoCard(item: NewPipeVideoApi.VideoItem): LinearLayout {
         val card = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, 0, 0, dp(18))
@@ -463,7 +463,7 @@ class NaoVideoPages(
 
     // ---------- Detail & pemutar ----------
 
-    private fun openDetail(item: InvidiousApi.VideoItem) {
+    private fun openDetail(item: NewPipeVideoApi.VideoItem) {
         val gen = ++generation
         activeVideoId = item.videoId
         pendingStreams.clear()
@@ -479,7 +479,7 @@ class NaoVideoPages(
                 null
             }
             val resolved = try {
-                api.streams(item.videoId)
+                api.resolveVideoStreams(item.videoId)
             } catch (e: Exception) {
                 emptyList()
             }
@@ -488,19 +488,20 @@ class NaoVideoPages(
                 if (resolved.isEmpty()) {
                     showPlaybackError("Stream tidak tersedia untuk video ini.", shouldRetry = true)
                 } else {
-                    triedYoutubeFallback = resolved.any { it.source == "youtube" }
                     pendingStreams.clear()
                     pendingStreams.addAll(resolved.drop(1))
                     initPlayer(resolved.first())
-                    playerSource?.text =
-                        if (resolved.first().source == "youtube") "via YouTube" else "via Invidious"
+                    playerSource?.text = "via NewPipe"
                     // Update quality selector with all available streams
                     updateAvailableStreams(resolved)
                     // Update channel info from detail
                     detail?.let { d ->
-                        channelSubs?.text = d.subCountText.ifBlank { "" }
-                        if (d.video.author.isNotBlank()) {
-                            loadChannelAvatar(d.video.author)
+                        d.channel?.let { ch ->
+                            channelSubs?.text = ch.subscriberText.ifBlank { "" }
+                            if (ch.name.isNotBlank()) {
+                                channelName?.text = ch.name
+                                loadChannelAvatar(ch.avatarUrl)
+                            }
                         }
                     }
                 }
@@ -508,7 +509,7 @@ class NaoVideoPages(
         }
     }
 
-    private fun renderPlayerSection(item: InvidiousApi.VideoItem, gen: Long) {
+    private fun renderPlayerSection(item: NewPipeVideoApi.VideoItem, gen: Long) {
         val target = list ?: return
         target.removeAllViews()
 
@@ -794,17 +795,17 @@ class NaoVideoPages(
 
         // Update channel info from detail if available
         detail?.let { d ->
-            channelSubs?.text = d.subCountText.ifBlank { "" }
-            // Try to load channel avatar
-            if (d.video.author.isNotBlank()) {
-                // Invidious doesn't directly provide channel avatar in video detail
-                // We could fetch it separately, but for now use a placeholder
-                loadChannelAvatar(d.video.author)
+            d.channel?.let { ch ->
+                channelSubs?.text = ch.subscriberText.ifBlank { "" }
+                if (ch.name.isNotBlank()) {
+                    channelName?.text = ch.name
+                    loadChannelAvatar(ch.avatarUrl)
+                }
             }
         }
     }
 
-    private fun addRelated(target: LinearLayout, related: List<InvidiousApi.VideoItem>) {
+    private fun addRelated(target: LinearLayout, related: List<NewPipeVideoApi.VideoItem>) {
         if (related.isEmpty()) return
         target.addView(tv("Berikutnya", 18f, true).apply {
             setPadding(dp(2), dp(20), 0, dp(12))
@@ -819,13 +820,11 @@ class NaoVideoPages(
 
     // ---------- Pemutar ----------
 
-    private fun initPlayer(stream: InvidiousApi.Stream) {
-        // URL googlevideo (hasil NewPipe) butuh UA klien YouTube; URL yang diproksikan
-        // instance Invidious memakai UA non-browser yang sama dengan panggilan API
-        // supaya tidak terkena tantangan anti-bot.
+    private fun initPlayer(stream: NewPipeVideoApi.Stream) {
+        // URL googlevideo (hasil NewPipe) butuh UA klien YouTube
         val userAgent = if (stream.url.contains("googlevideo.com"))
             com.nao.md.project.music.InnerTubeClient.STREAM_USER_AGENT
-        else InvidiousApi.API_USER_AGENT
+        else "NewPipe/1.0 (Android; NewPipeExtractor)"
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setUserAgent(userAgent)
             .setAllowCrossProtocolRedirects(true)
@@ -1050,7 +1049,7 @@ class NaoVideoPages(
         builder.show()
     }
 
-    private fun updateAvailableStreams(streams: List<InvidiousApi.Stream>) {
+    private fun updateAvailableStreams(streams: List<NewPipeVideoApi.Stream>) {
         availableStreams.clear()
         availableStreams.addAll(streams.distinctBy { it.resolution })
         if (availableStreams.isNotEmpty()) {

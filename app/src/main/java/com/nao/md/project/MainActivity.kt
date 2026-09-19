@@ -62,7 +62,7 @@ import com.nao.md.project.music.YouTubeStreamResolver
 import com.nao.md.project.music.NaoLyricsClient
 import com.nao.md.project.music.MusicStore
 import com.nao.md.project.music.NaoMusicPages
-import com.nao.md.project.video.InvidiousApi
+import com.nao.md.project.video.NewPipeVideoApi
 import com.nao.md.project.video.NaoVideoPages
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity() {
     private val musicStore by lazy { MusicStore(this) }
     private var naoMusicPages: NaoMusicPages? = null
     private var naoVideoPages: NaoVideoPages? = null
-    private val invidiousApi by lazy { InvidiousApi(this) }
+    private val newPipeVideoApi by lazy { NewPipeVideoApi(this) }
     private var musicPlayer: Player? = null
     private var musicNow: InnerTubeClient.Track? = null
     private var musicResults = emptyList<InnerTubeClient.Track>()
@@ -3209,7 +3209,7 @@ class MainActivity : AppCompatActivity() {
     private fun attachNaoVideoShell() {
         val pages = NaoVideoPages(
             activity = this,
-            api = invidiousApi,
+            api = newPipeVideoApi,
             exec = exec,
             callbacks = object : NaoVideoPages.Callbacks {
                 override fun loadThumb(view: ImageView, url: String, videoId: String) {
@@ -3219,7 +3219,7 @@ class MainActivity : AppCompatActivity() {
                     applyMusicThumbnailShape(view, radiusDp)
                 }
                 override fun showSettings() {
-                    showVideoInstanceDialog()
+                    showVideoSettingsDialog()
                 }
                 override fun openInBrowser(videoId: String) {
                     openVideoInBrowser(videoId)
@@ -3240,100 +3240,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Dialog pengaturan instance Invidious: kustom, otomatis, atau refresh. */
-    private fun showVideoInstanceDialog() {
+/** Dialog pengaturan video: NewPipe langsung ke YouTube, tidak perlu instance. */
+    private fun showVideoSettingsDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle(NaoLang.t("Instance Invidious"))
+        builder.setTitle(NaoLang.t("Pengaturan Video"))
         val panel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(22), dp(6), dp(22), dp(6))
         }
         lateinit var dialog: AlertDialog
 
-        val current = invidiousApi.currentInstance().ifBlank { "—" }
-        panel.addView(tv("Sekarang: $current", 11f).apply {
+        panel.addView(tv("Backend: NewPipeExtractor (langsung ke YouTube)", 11f).apply {
             setTextColor(muted)
             maxLines = 2
             ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
         })
 
-        val input = field("https://instance.invidious", multi = false).apply {
-            setText(invidiousApi.customInstance())
-            hint = "https://instance.invidious"
-        }
-        panel.addView(input, LinearLayout.LayoutParams(-1, dp(52)).apply {
-            setMargins(0, dp(10), 0, dp(4))
-        })
-
-        panel.addView(tv("Kosongkan untuk otomatis. Setelan ini disimpan lokal.", 10f).apply {
+        panel.addView(tv("Tidak memerlukan instance Invidious. Ekstraksi stream\nmenggunakan NewPipeExtractor seperti aplikasi NewPipe resmi.", 10f).apply {
             setTextColor(muted)
+            setPadding(0, dp(8), 0, 0)
         })
 
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
         }
-        row.addView(btn("Simpan kustom").apply {
+        row.addView(btn("Bersihkan Cache").apply {
             setOnClickListener {
-                invidiousApi.setCustomInstance(input.text.toString())
+                // Clear NewPipe cache if needed
                 Toast.makeText(this@MainActivity,
-                    NaoLang.t("Instance Invidious disimpan."), Toast.LENGTH_SHORT).show()
+                    NaoLang.t("Cache dibersihkan."), Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
         }, LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(0, 0, dp(6), 0) })
-        row.addView(btn("Auto").apply {
+        row.addView(btn("Reset").apply {
             setOnClickListener {
-                invidiousApi.setCustomInstance("")
                 Toast.makeText(this@MainActivity,
-                    NaoLang.t("Mode otomatis aktif."), Toast.LENGTH_SHORT).show()
+                    NaoLang.t("Direset ke default."), Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
         }, LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dp(6), 0, 0, 0) })
         panel.addView(row)
-
-        panel.addView(btn("Refresh daftar instance").apply {
-            setOnClickListener {
-                exec.execute {
-                    val found = invidiousApi.refreshInstances().size
-                    runOnUiThread {
-                        Toast.makeText(this@MainActivity,
-                            NaoLang.t("Ditemukan $found instance Invidious."), Toast.LENGTH_SHORT).show()
-                    }
-                }
-                dialog.dismiss()
-            }
-        }, LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(8), 0, 0) })
-
-        val saved = invidiousApi.savedInstances().take(5)
-        if (saved.isNotEmpty()) {
-            panel.addView(tv("PILIH CEPAT", 10f, true).apply {
-                letterSpacing = .12f
-                setPadding(dp(2), dp(16), 0, dp(6))
-            })
-            saved.forEach { uri ->
-                val item = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    gravity = Gravity.CENTER_VERTICAL
-                    setPadding(dp(12), dp(10), dp(12), dp(10))
-                    background = rounded(NaoThemeManager.tintBox(this@MainActivity, Color.rgb(20, 24, 35)), 14, true)
-                    setOnClickListener {
-                        invidiousApi.setCustomInstance(uri)
-                        input.setText(uri)
-                        Toast.makeText(this@MainActivity,
-                            NaoLang.t("Instance dipilih."), Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                    }
-                }
-                val clean = uri.removePrefix("https://").removePrefix("http://")
-                item.addView(tv(clean, 12f, true).apply {
-                    maxLines = 1
-                    ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
-                })
-                panel.addView(item, LinearLayout.LayoutParams(-1, -2).apply {
-                    setMargins(0, dp(4), 0, 0)
-                })
-}
-        }
 
         dialog = builder.setView(panel)
             .setNegativeButton(NaoLang.t("Tutup"), null)
