@@ -223,9 +223,9 @@ class NewPipeVideoApi(private val context: Context) {
                     resolution = "${stream.getWidth()}x${stream.getHeight()}",
                     width = stream.getWidth(),
                     height = stream.getHeight(),
-                    itag = stream.format?.id?.toIntOrNull() ?: 0,
+                    itag = (stream.format?.id as? String)?.toIntOrNull() ?: (stream.format?.id as? Int) ?: 0,
                     fps = stream.fps,
-                    bitrate = stream.getAverageBitrate().toLong(),
+                    bitrate = stream.averageBitrate.toLong(),
                     isAudioOnly = false,
                     isVideoOnly = false
                 )
@@ -243,7 +243,7 @@ class NewPipeVideoApi(private val context: Context) {
                     resolution = "Audio only",
                     width = 0,
                     height = 0,
-                    itag = stream.format?.id?.toIntOrNull() ?: 0,
+                    itag = (stream.format?.id as? String)?.toIntOrNull() ?: (stream.format?.id as? Int) ?: 0,
                     bitrate = stream.getAverageBitrate().toLong(),
                     isAudioOnly = true,
                     isVideoOnly = false
@@ -336,9 +336,9 @@ class NewPipeVideoApi(private val context: Context) {
                     resolution = "${stream.getWidth()}x${stream.getHeight()}",
                     width = stream.getWidth(),
                     height = stream.getHeight(),
-                    itag = stream.format?.id?.toIntOrNull() ?: 0,
+                    itag = (stream.format?.id as? String)?.toIntOrNull() ?: (stream.format?.id as? Int) ?: 0,
                     fps = stream.fps,
-                    bitrate = stream.getAverageBitrate().toLong()
+                    bitrate = stream.averageBitrate.toLong()
                 )
             }
             .sortedWith(compareByDescending<Stream> { it.height }.thenByDescending { it.width })
