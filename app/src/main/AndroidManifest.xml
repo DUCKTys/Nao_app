@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <application
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.nao.md.project.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+        <activity
+            android:name="com.nao.md.project.NaoLaunchActivity"
+            android:exported="true"
+            android:theme="@style/Theme.NaoMusic.LaunchGate"
+            android:noHistory="false"
+            android:excludeFromRecents="false" />
+
+
+        <activity
+            android:name="com.nao.md.project.DiscordOAuthCallbackActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="discord-1539020121979355247" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.nao.md.project.MainActivity"
+            android:exported="false"
+            android:configChanges="uiMode"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name="com.nao.md.project.DiscordTokenLoginActivity"
+            android:exported="false"
+            android:configChanges="uiMode|orientation|screenSize"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity-alias
+            android:name="com.nao.md.project.NaoIcon1Alias"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@drawable/nao_icon_1"
+            android:label="@string/app_name"
+            android:targetActivity=".NaoLaunchActivity"
+            android:theme="@style/Theme.NaoMusic.LaunchGate">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name="com.nao.md.project.NaoIcon2Alias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@drawable/nao_icon_2"
+            android:label="@string/app_name"
+            android:targetActivity=".NaoLaunchActivity"
+            android:theme="@style/Theme.NaoMusic.LaunchGate">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name="com.nao.md.project.NaoIcon3Alias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@drawable/nao_icon_3"
+            android:label="@string/app_name"
+            android:targetActivity=".NaoLaunchActivity"
+            android:theme="@style/Theme.NaoMusic.LaunchGate">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <receiver
+            android:name="com.nao.md.project.NaoMusicCommandReceiver"
+            android:exported="false" />
+
+        <service
+            android:name="com.nao.md.project.NaoMusicPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
+            android:stopWithTask="false">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
+    </application>
+
+    <queries>
+        <package android:name="com.discord" />
+        <package android:name="com.gojek.gopay" />
+        <package android:name="com.gojek.app" />
+        <package android:name="id.dana" />
+        <package android:name="ovo.id" />
+    </queries>
+
+</manifest>

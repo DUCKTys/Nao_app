@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <defs>
+    <clipPath id="r"><rect x="3" y="3" width="90" height="90" rx="22"/></clipPath>
+  </defs>
+  <rect width="96" height="96" rx="24" fill="#050607"/>
+  <image href="../../../../res/drawable-nodpi/nao_nao_mark.png" x="3" y="3" width="90" height="90" preserveAspectRatio="xMidYMid slice" clip-path="url(#r)"/>
+</svg>

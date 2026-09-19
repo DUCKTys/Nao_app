@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tag slot used by NaoArtworkLoader to bind an ImageView to its artwork key. -->
+    <item name="nao_artwork_tag" type="id" />
+</resources>

@@ -1,0 +1,15 @@
+<resources>
+    <style name="AppTheme" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/nao_bg</item>
+        <item name="android:navigationBarColor">@color/nao_bg</item>
+        <item name="android:colorAccent">@color/nao_accent</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="Theme.NaoMusic.LaunchGate" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowBackground">@color/nao_splash_bg</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

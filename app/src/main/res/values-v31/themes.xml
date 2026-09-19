@@ -1,0 +1,10 @@
+<resources>
+    <!-- Android 12+ owns a very short launch surface before NaoLaunchActivity draws.
+         Keep it iconless so the real launcher alias icon never flashes here. -->
+    <style name="Theme.NaoMusic.LaunchGate" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/nao_splash_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/nao_splash_transparent</item>
+        <item name="android:windowBackground">@color/nao_splash_bg</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

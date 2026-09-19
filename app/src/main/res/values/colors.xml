@@ -1,0 +1,11 @@
+<resources>
+    <color name="nao_bg">#080A10</color>
+    <color name="nao_surface">#11141D</color>
+    <color name="nao_surface2">#171B26</color>
+    <color name="nao_text">#F5F7FB</color>
+    <color name="nao_muted">#9299A8</color>
+    <color name="nao_accent">#8B5CF6</color>
+    <color name="nao_cyan">#22D3EE</color>
+    <color name="nao_green">#34D399</color>
+    <color name="nao_splash_bg">#050607</color>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Backend Video ke Audio (ApiClient) masih memakai HTTP. Downloader sudah
+         tidak lagi memakai backend ini — sudah sepenuhnya pindah ke API pihak
+         ketiga (HTTPS). Baris ini tetap ada supaya Android 9+ tidak menolak
+         panggilan Video ke Audio dengan "Cleartext HTTP traffic not permitted".
+         Music/InnerTube tetap HTTPS-only di kliennya sendiri. -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

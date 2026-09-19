@@ -1,0 +1,8 @@
+Nao Music Discord Application ID
+1539020121979355247
+
+Website
+https://duck-tys.vercel.app/
+
+Developer Portal Public Key
+Configured in Discord Developer Portal. Do not replace it with an OCR/guessed value.
