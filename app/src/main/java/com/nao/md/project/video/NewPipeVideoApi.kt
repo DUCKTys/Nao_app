@@ -225,9 +225,7 @@ class NewPipeVideoApi(private val context: Context) {
                     height = stream.getHeight(),
                     itag = (stream.format?.id as? String)?.toIntOrNull() ?: (stream.format?.id as? Int) ?: 0,
                     fps = stream.fps,
-                    bitrate = stream.averageBitrate.toLong(),
-                    isAudioOnly = false,
-                    isVideoOnly = false
+                    bitrate = (stream.format?.averageBitrate as? Long) ?: (stream.format?.averageBitrate as? Int)?.toLong() ?: 0L
                 )
             }
             .sortedWith(compareByDescending<Stream> { it.height }.thenByDescending { it.width })
@@ -338,7 +336,7 @@ class NewPipeVideoApi(private val context: Context) {
                     height = stream.getHeight(),
                     itag = (stream.format?.id as? String)?.toIntOrNull() ?: (stream.format?.id as? Int) ?: 0,
                     fps = stream.fps,
-                    bitrate = stream.averageBitrate.toLong()
+                    bitrate = (stream.format?.averageBitrate as? Long) ?: (stream.format?.averageBitrate as? Int)?.toLong() ?: 0L
                 )
             }
             .sortedWith(compareByDescending<Stream> { it.height }.thenByDescending { it.width })
